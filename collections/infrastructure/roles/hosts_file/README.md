@@ -63,6 +63,45 @@ While if `hosts_file_enable_extended_names: false`, then the following content w
 10.10.0.3 c001 c001.bluebanquise.local foobar
 ```
 
+### Per-target network overrides
+
+By default every host's short-form name (the bare hostname, e.g. `c001`) resolves
+to its first network interface IP. On clusters with a high-speed fabric (InfiniBand,
+OmniPath, etc.) it is often preferable for certain node classes to resolve peers
+over that fabric instead.
+
+Set `hosts_file_internal_network` in the appropriate group_vars as a dict mapping
+inventory group name to network name. The role will substitute the short-form IP
+with the IP from that network's extended entry when generating `/etc/hosts` for
+hosts in the target group. A `~` (null) or empty value suppresses the short-form
+entry entirely for hosts in that group.
+
+Example for compute and storage nodes that should address each other over IB:
+
+```yaml
+# group_vars/mg_computes/hosts_file.yml
+# group_vars/mg_oss/hosts_file.yml
+# group_vars/mg_mds/hosts_file.yml
+hosts_file_internal_network:
+  mg_computes: ib
+  mg_oss: ib
+  mg_mds: ib
+```
+
+Management nodes that should use the admin network for all entries simply omit
+the variable (the default is an empty dict, preserving the original behaviour).
+
+To suppress the short-form entry for a group entirely:
+
+```yaml
+hosts_file_internal_network:
+  mg_computes: ib
+  mg_managements: ~   # no short-form entry for management nodes on this target
+```
+
+Note: if a host belongs to more than one matched group the last matching rule
+(in dict insertion order) takes precedence.
+
 ## Changelog
 
 **Please now update CHANGELOG file at repository root instead of adding logs in this file.

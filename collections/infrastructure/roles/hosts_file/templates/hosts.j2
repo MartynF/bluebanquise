@@ -7,9 +7,31 @@
 
 ## Internal hosts
 
-{# Always write base records #}
+{# Build lookup: "hostname-network" -> ip4, used for network overrides below #}
+{% set ext_lookup = {} %}
+{% for h in hostvars['localhost']['hosts_file_hosts_by_first_octets']['forward']['extended'] %}
+  {% set _ = ext_lookup.update({h.hostname: h.ip4}) %}
+{% endfor %}
+
+{# Write base records, with any overrides from hosts_file_internal_network         #}
+
 {% for host in hostvars['localhost']['hosts_file_hosts_by_first_octets']['forward']['base'] %}
-{{ host.ip4 }} {{ host.hostname }}
+  {% set ns = namespace(ip4=host.ip4, write=true) %}
+  {% for rule_group, rule_network in (hosts_file_internal_network | default({})).items() %}
+    {% if host.hostname in (groups[rule_group] | default([])) %}
+      {% if not rule_network %}
+        {% set ns.write = false %}
+      {% else %}
+        {% set override_key = host.hostname ~ '-' ~ rule_network %}
+        {% if override_key in ext_lookup %}
+          {% set ns.ip4 = ext_lookup[override_key] %}
+        {% endif %}
+      {% endif %}
+    {% endif %}
+  {% endfor %}
+  {% if ns.write %}
+{{ ns.ip4 }} {{ host.hostname }}
+  {% endif %}
 {% endfor %}
 
 {# Conditionally write extended records #}

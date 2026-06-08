@@ -8,3 +8,14 @@ hosts_file_fqdn_first: false
 # If set to true, hostname, alias, nic-network and nic-alias will be written info hosts file
 # If set to false, only hostname and alias will be written into hosts file
 hosts_file_enable_extended_names: true
+
+# Dict mapping inventory group name to the network to use for that group's short-form
+# hostname entry. A null (~) or empty value suppresses the short-form entry entirely.
+# Not set = all hosts use their first interface IP (default behaviour).
+# Example:
+#   hosts_file_internal_network:
+#     mg_computes: ib
+#     mg_oss: ib
+#     mg_mds: ib
+#     mg_managements: ~   # suppress short names for management on this target
+hosts_file_internal_network: {}
