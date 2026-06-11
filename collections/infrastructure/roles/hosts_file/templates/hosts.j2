@@ -2,6 +2,8 @@
 #### Blue Banquise file ####
 ## {{ ansible_managed }}
 
+{% set _domain = hosts_file_domain_name | default(bb_domain_name, true) | default('cluster.local', true) %}
+
 127.0.0.1   localhost localhost.localdomain localhost4 localhost4.localdomain4
 ::1         localhost localhost.localdomain localhost6 localhost6.localdomain6
 
@@ -30,7 +32,11 @@
     {% endif %}
   {% endfor %}
   {% if ns.write %}
+    {% if host.source | default('') == 'service' %}
+{{ ns.ip4 }} {{ host.hostname }} {{ host.hostname }}.{{ _domain }} {{ host.hostname }}-{{ host.svc_name }} {{ host.hostname }}-{{ host.svc_name }}-{{ host.network }}
+    {% else %}
 {{ ns.ip4 }} {{ host.hostname }}
+    {% endif %}
   {% endif %}
 {% endfor %}
 

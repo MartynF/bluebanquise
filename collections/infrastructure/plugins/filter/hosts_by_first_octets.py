@@ -68,8 +68,7 @@ class FilterModule(object):
                         ip4, svc_host = item.get('ip4'), item.get('hostname')
                         if ip4 and svc_host:
                             ip_net, ip_host = _rsplit(ip4, '.', 1)
-                            entry = {"hostname": svc_host, "network": net_name, "ip4": ip4, "ip_host": ip_host}
-                            # Services are typically base records
+                            entry = {"hostname": svc_host, "network": net_name, "ip4": ip4, "ip_host": ip_host, "source": "service", "svc_name": svc_name}
                             forward_data['base'].append(entry)
                             # reverse_data[ip_net]['base'].append(entry) # Do not add services in reverse
             except Exception as e:
